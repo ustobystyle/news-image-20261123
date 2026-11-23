@@ -1,8 +1,10 @@
-// World-news image entry (Node 22, standard library only): the image is the
-// entry.png beside this file, and the program copies it to /output/entry.png.
-// The gate takes a whole PNG or JPEG of at most 1 MiB and 1024 by 1024 pixels,
-// and the judge sees exactly the bytes copied. The program runs with no
-// network, so the image is carried in the repository itself.
+// World-news image entry for news-image-20261123 (Node 22, standard library
+// only): the image is the entry.png beside this file, and the program copies
+// it to /output/entry.png. The gate takes a whole PNG or JPEG of at most 1 MiB
+// and 1024 by 1024 pixels, and the judge sees exactly the bytes copied. The
+// program runs with no network, so the image is carried in the repository
+// itself. This entry sums up Monday 23 November 2026: 38 stories, 6 regions
+// plus global, every one dated that day.
 //
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
