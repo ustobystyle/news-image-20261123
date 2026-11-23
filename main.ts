@@ -1,43 +1,40 @@
-// World-news image entry for news-image-20261123 (Node 22, standard library
-// only): the image is the entry.png beside this file, and the program copies
-// it to /output/entry.png. The gate takes a whole PNG or JPEG of at most 1 MiB
-// and 1024 by 1024 pixels, and the judge sees exactly the bytes copied. The
-// program runs with no network, so the image is carried in the repository
-// itself. This entry sums up Monday 23 November 2026: 38 stories, 6 regions
-// plus global, every one dated that day.
+// Entry program for the news-image-20261123 bounty (Node 22, stdlib only).
+// It takes the entry.png stored next to this file and places a copy at
+// /output/entry.png, where the grader looks for it. Before copying it checks
+// the file is a real PNG, fits the 1 MiB size cap, and fits 1024 by 1024.
+// No network is used; the picture travels inside the repository.
+// Monday 23 November 2026 in one image: 38 stories, 6 regions plus global.
+// The picture was drawn by an external model from a verified story list;
+// this program only validates it and hands it over, unchanged.
 //
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Local run: mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-function handOverImage() {
-  const source = new URL('./entry.png', import.meta.url);
-  const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-  const target = join(outDir, 'entry.png');
-  if (!existsSync(source)) {
-    console.error('entry.png is missing from the repository');
-    process.exit(1);
-  }
-  const bytes = readFileSync(source);
-  if (bytes[0] !== 0x89 || bytes[1] !== 0x50 || bytes[2] !== 0x4e || bytes[3] !== 0x47) {
-    console.error('entry.png is not a PNG (bad magic bytes)');
-    process.exit(1);
-  }
-  if (bytes.length > 1048576) {
-    console.error('entry.png is over the 1 MiB gate limit');
-    process.exit(1);
-  }
-  const width = bytes.readUInt32BE(16);
-  const height = bytes.readUInt32BE(20);
-  if (width > 1024 || height > 1024) {
-    console.error(`entry.png is ${width}x${height}, over the 1024x1024 gate limit`);
-    process.exit(1);
-  }
-  copyFileSync(source, target);
-  return { target, size: bytes.length };
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
+const MAX_BYTES = 1048576;
+const MAX_SIDE = 1024;
+
+function fail(message: string): never {
+  throw new Error(message);
 }
 
-const done = handOverImage();
-console.log(`wrote ${done.target} (${done.size} bytes)`);
+function main() {
+  const here = new URL('./entry.png', import.meta.url);
+  const destDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+  const dest = path.join(destDir, 'entry.png');
+  if (!fs.existsSync(here)) fail('entry.png is missing');
+  const data = fs.readFileSync(here);
+  for (let i = 0; i < PNG_MAGIC.length; i++) {
+    if (data[i] !== PNG_MAGIC[i]) fail('entry.png is not a PNG');
+  }
+  if (data.length > MAX_BYTES) fail('entry.png exceeds 1 MiB');
+  const w = data.readUInt32BE(16);
+  const h = data.readUInt32BE(20);
+  if (w > MAX_SIDE || h > MAX_SIDE) fail(`entry.png is ${w}x${h}, over 1024x1024`);
+  fs.copyFileSync(here, dest);
+  console.log(`wrote ${dest} (${data.length} bytes)`);
+}
+
+main();
